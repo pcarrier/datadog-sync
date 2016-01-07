@@ -26,7 +26,7 @@ func (m *Monitor) shortDescription() string {
 func SyncMonitors(local, remote []Monitor, client *http.Client, dryRun, verbose bool) error {
 	remoteSetIgnoringID := make(monitorSetIgnoringID)
 	remotesByID := make(map[id]Monitor)
-	var localSet monitorSetIgnoringID
+	localSet := make(monitorSetIgnoringID)
 	var toCreate []Monitor
 	var toUpdate []update
 
