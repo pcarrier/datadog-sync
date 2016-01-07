@@ -1,0 +1,9 @@
+language: go
+go:
+- 1.5.2
+- 1.5.1
+- 1.5
+sudo: false
+notifications:
+  email:
+    on_success: never
