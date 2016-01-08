@@ -70,3 +70,4 @@ any changes.
 
 - [Interferon](https://github.com/airbnb/interferon) from Airbnb
 - [Barkdog](https://github.com/winebarrel/barkdog) from Genki Sugawara
+- [dog-watcher](https://github.com/brightcove/dog-watcher) from Brightcove, to capture dashboards
