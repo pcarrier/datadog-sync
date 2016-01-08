@@ -1,9 +1,21 @@
 language: go
 go:
-- 1.5.2
-- 1.5.1
 - 1.5
+- 1.5.1
+- 1.5.2
 sudo: false
 notifications:
   email:
     on_success: never
+install:
+  - go get golang.org/x/tools/cmd/vet
+  - go get github.com/golang/lint/golint
+  - go get github.com/Sirupsen/logrus
+  - go get gopkg.in/yaml.v2
+  - go install .
+script:
+  - go vet .
+  - LINT=$(golint .) && echo $LINT
+  - test -z "$LINT"
+  - GOFMT=$(gofmt -s -d .) && echo $GOFMT
+  - test -z "$GOFMT"

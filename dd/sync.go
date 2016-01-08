@@ -2,10 +2,10 @@ package dd
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"reflect"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/meteor/datadog-sync/util"
 )
 
@@ -26,7 +26,7 @@ func (m *Monitor) shortDescription() string {
 func SyncMonitors(local, remote []Monitor, client *http.Client, dryRun, verbose bool) error {
 	remoteSetIgnoringID := make(monitorSetIgnoringID)
 	remotesByID := make(map[id]Monitor)
-	var localSet monitorSetIgnoringID
+	localSet := make(monitorSetIgnoringID)
 	var toCreate []Monitor
 	var toUpdate []update
 
@@ -60,10 +60,10 @@ func SyncMonitors(local, remote []Monitor, client *http.Client, dryRun, verbose 
 	deletions := len(remotesByID)
 	total := creations + updates + deletions
 
-	log.Printf("%d creations, %d updates, %d deletions", creations, updates, deletions)
+	logrus.Infof("%d creations, %d updates, %d deletions", creations, updates, deletions)
 
 	for i, m := range toCreate {
-		log.Printf("CREATE %d/%d/%d: %s", i, creations, total, m.shortDescription())
+		logrus.Infof("CREATE %d/%d/%d: %s", i, creations, total, m.shortDescription())
 		if !dryRun {
 			if err := m.create(client); err != nil {
 				return err
@@ -71,12 +71,12 @@ func SyncMonitors(local, remote []Monitor, client *http.Client, dryRun, verbose 
 		}
 		if verbose {
 			repr, _ := util.Marshal(m, util.YAML)
-			log.Println(repr)
+			logrus.Debug(repr)
 		}
 	}
 
 	for i, u := range toUpdate {
-		log.Printf("UPDATE %d/%d/%d: %s", i, updates, total, u.from.shortDescription())
+		logrus.Infof("UPDATE %d/%d/%d: %s", i, updates, total, u.from.shortDescription())
 		if !dryRun {
 			if err := u.from.update(client, &u.to); err != nil {
 				return err
@@ -85,13 +85,13 @@ func SyncMonitors(local, remote []Monitor, client *http.Client, dryRun, verbose 
 		if verbose {
 			f, _ := util.Marshal(u.from, util.YAML)
 			t, _ := util.Marshal(u.to, util.YAML)
-			log.Printf("%s\n=>\n%s", f, t)
+			logrus.Debugf("%s\n=>\n%s", f, t)
 		}
 	}
 
 	idx := 0
 	for _, m := range remotesByID {
-		log.Printf("DELETE %d/%d/%d: %s", idx, deletions, total, m.shortDescription())
+		logrus.Infof("DELETE %d/%d/%d: %s", idx, deletions, total, m.shortDescription())
 		idx++
 		if !dryRun {
 			if err := m.delete(client); err != nil {
@@ -100,7 +100,7 @@ func SyncMonitors(local, remote []Monitor, client *http.Client, dryRun, verbose 
 		}
 		if verbose {
 			repr, _ := util.Marshal(m, util.YAML)
-			log.Println(repr)
+			logrus.Debug(repr)
 		}
 	}
 

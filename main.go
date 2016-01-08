@@ -4,13 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"os"
 
 	"regexp"
 
 	"net/http"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/meteor/datadog-sync/dd"
 	"github.com/meteor/datadog-sync/util"
 )
@@ -49,6 +49,8 @@ func filteredMonitors(from []dd.Monitor, filter string) ([]dd.Monitor, error) {
 }
 
 func main() {
+	logrus.SetLevel(logrus.DebugLevel)
+
 	var action mode
 	var format util.Format
 
@@ -60,7 +62,7 @@ func main() {
 	case "push":
 		action = push
 	default:
-		log.Fatalf("unsupported mode %v", *modeStr)
+		logrus.Fatalf("unsupported mode %v", *modeStr)
 	}
 
 	switch *formatStr {
@@ -69,20 +71,20 @@ func main() {
 	case "yaml":
 		format = util.YAML
 	default:
-		log.Fatalf("unsupported format %v", *formatStr)
+		logrus.Fatalf("unsupported format %v", *formatStr)
 	}
 
 	if *dd.APIKey == "" {
 		var ok bool
 		if *dd.APIKey, ok = os.LookupEnv("DATADOG_API_KEY"); !ok {
-			log.Fatal("no API key provided")
+			logrus.Fatal("no API key provided")
 		}
 	}
 
 	if *dd.AppKey == "" {
 		var ok bool
 		if *dd.AppKey, ok = os.LookupEnv("DATADOG_APP_KEY"); !ok {
-			log.Fatal("no application key provided")
+			logrus.Fatal("no application key provided")
 		}
 	}
 
@@ -90,12 +92,12 @@ func main() {
 
 	remote, err := dd.GetMonitors(client)
 	if err != nil {
-		log.Fatalf("could not pull monitors: %v", err)
+		logrus.WithError(err).Fatal("could not pull monitors")
 	}
 
 	remote, err = filteredMonitors(remote, *filter)
 	if err != nil {
-		log.Fatalf("could not filter remote monitors: %v", err)
+		logrus.WithError(err).Fatal("could not filter remote monitors")
 	}
 
 	switch action {
@@ -108,27 +110,27 @@ func main() {
 		}
 		repr, err = util.Marshal(remote, format)
 		if err != nil {
-			log.Fatalf("could not serialize monitors: %v", err)
+			logrus.WithError(err).Fatal("could not serialize monitors")
 		}
 		fmt.Println(repr)
 	case push:
 		var local []dd.Monitor
 		repr, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
-			log.Fatalf("could not read from standard input: %v", err)
+			logrus.WithError(err).Fatal("could not read from standard input")
 		}
 
 		if err = util.Unmarshal(repr, &local, format); err != nil {
-			log.Fatalf("could not deserialize monitors: %v", err)
+			logrus.WithError(err).Fatal("could not deserialize monitors")
 		}
 
 		local, err = filteredMonitors(local, *filter)
 		if err != nil {
-			log.Fatalf("could not filter local monitors: %v", err)
+			logrus.WithError(err).Fatal("could not filter local monitors")
 		}
 
 		if err = dd.SyncMonitors(local, remote, client, *dryRun, *verbose); err != nil {
-			log.Fatalf("could not sync monitors: %v", err)
+			logrus.WithError(err).Fatal("could not sync monitors: %v")
 		}
 	}
 }

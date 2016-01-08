@@ -5,10 +5,10 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"strings"
 
+	"github.com/Sirupsen/logrus"
 	"github.com/meteor/datadog-sync/util"
 )
 
@@ -54,7 +54,7 @@ func doHTTP(client *http.Client, method, url, body string) ([]byte, error) {
 			req, body, resp, string(respBody))
 		msg = strings.Replace(msg, *APIKey, "HIDDEN_API_KEY", -1)
 		msg = strings.Replace(msg, *AppKey, "HIDDEN_APP_KEY", -1)
-		log.Printf(msg)
+		logrus.Debug(msg)
 	}
 
 	if resp.StatusCode != http.StatusOK {
