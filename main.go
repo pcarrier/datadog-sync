@@ -92,12 +92,12 @@ func main() {
 
 	remote, err := dd.GetMonitors(client)
 	if err != nil {
-		logrus.Fatalf("could not pull monitors: %v", err)
+		logrus.WithError(err).Fatal("could not pull monitors")
 	}
 
 	remote, err = filteredMonitors(remote, *filter)
 	if err != nil {
-		logrus.Fatalf("could not filter remote monitors: %v", err)
+		logrus.WithError(err).Fatal("could not filter remote monitors")
 	}
 
 	switch action {
@@ -110,27 +110,27 @@ func main() {
 		}
 		repr, err = util.Marshal(remote, format)
 		if err != nil {
-			logrus.Fatalf("could not serialize monitors: %v", err)
+			logrus.WithError(err).Fatal("could not serialize monitors")
 		}
 		fmt.Println(repr)
 	case push:
 		var local []dd.Monitor
 		repr, err := ioutil.ReadAll(os.Stdin)
 		if err != nil {
-			logrus.Fatalf("could not read from standard input: %v", err)
+			logrus.WithError(err).Fatal("could not read from standard input")
 		}
 
 		if err = util.Unmarshal(repr, &local, format); err != nil {
-			logrus.Fatalf("could not deserialize monitors: %v", err)
+			logrus.WithError(err).Fatal("could not deserialize monitors")
 		}
 
 		local, err = filteredMonitors(local, *filter)
 		if err != nil {
-			logrus.Fatalf("could not filter local monitors: %v", err)
+			logrus.WithError(err).Fatal("could not filter local monitors")
 		}
 
 		if err = dd.SyncMonitors(local, remote, client, *dryRun, *verbose); err != nil {
-			logrus.Fatalf("could not sync monitors: %v", err)
+			logrus.WithError(err).Fatal("could not sync monitors: %v")
 		}
 	}
 }
