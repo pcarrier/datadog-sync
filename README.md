@@ -13,7 +13,7 @@ We do not currently provide binaries or packages.
 
 Please [setup a Go environment](https://golang.org/doc/install), then run:
 
-    $ go install github.com/meteor/datadog-sync
+    $ go get -u github.com/meteor/datadog-sync
 
 This tool will then be available as `$GOPATH/bin/datadog-sync` and can be copied around (but not shared
 between Windows, OSX and Linux, nor across CPU architectures).
